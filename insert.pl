@@ -12,33 +12,48 @@ my $fileStart = 0;
 my $csv = Text::CSV->new();
 # my $db = DBI->connect("dbi:mysql:dbname=banker.db", "", "");
 
-my %regEx = (
+	my %regEx = (
 		"Sainsbusy", "food",
 		"WH Smith", "books",
-		"*BuyMyShizzle*", "birthday presents",
+		"BuyMyShizzle", "bday presents",
 		"Overground", "travel",
 		"BOOKFAIR", "books",
 	);
 
-#print %regEx;
+my $cDate = 0;
+my $cMatch = 1;
+my $cAmount = 2;
+
+my %totals = (
+		"Total Out", ("count", 0, "value" , 0),
+		"Total In", ("count", 0, "value" , 0),
+	);
 
 open (CSV, "<", $file) or die $!;
 
 while (<CSV>) {
 	if ($csv->parse($_)) {
 		my @columns = $csv->fields();
-		print $columns[0]." - ";
-		print "£".$columns[2]." - ";
-		while(my($key, $value) = each(%regEx)){
-			print $value;
+		print $columns[$cDate]." - ";
+		print "£".$columns[$cAmount]." - ";
+		while(my($exp, $label) = each(%regEx)){
+			if($columns[$cMatch] =~ m/$exp/){
+				print $label;
+				$totals{$label}{'count'}++;
+				$totals{$label}{'value'} += $columns[ $cAmount ];
+			}
 		}
+		print "				".$columns[ $cMatch ]." - ";
 		print "\n";
-	#	@column = split(/ /, @column
-	#	print "@columns\n";
 	} else {
 		my $err = $csv->error_input;
 		print "Failed to parse line: $err";
 	}
 }
-
 close CSV;
+
+
+## Output the results
+while(my($label, $value) = each(%totals)){
+	print $label ."		: £". $label{'value'}."\n";
+}
