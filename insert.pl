@@ -43,7 +43,7 @@ while (<CSV>) {
 				$totals{$label}{'value'} += $columns[ $cAmount ];
 			}
 		}
-		print "				".$columns[ $cMatch ]." - ";
+		print "\t\t\t".$columns[ $cMatch ]." - ";
 		print "\n";
 	} else {
 		my $err = $csv->error_input;
@@ -55,5 +55,5 @@ close CSV;
 
 ## Output the results
 while(my($label, $value) = each(%totals)){
-	print $label ."		: £". $label{'value'}."\n";
+	print $label ."\t\t: £". $label{'value'}."\n";
 }
