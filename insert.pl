@@ -12,8 +12,13 @@ my $fileStart = 0;
 my $csv = Text::CSV->new();
 # my $db = DBI->connect("dbi:mysql:dbname=banker.db", "", "");
 
-my %regEx = { };
-$regEx { food } => "Sainsbury";
+my %regEx = (
+		"Sainsbusy", "food",
+		"WH Smith", "books",
+		"*BuyMyShizzle*", "birthday presents",
+		"Overground", "travel",
+		"BOOKFAIR", "books",
+	);
 
 #print %regEx;
 
@@ -24,9 +29,9 @@ while (<CSV>) {
 		my @columns = $csv->fields();
 		print $columns[0]." - ";
 		print "£".$columns[2]." - ";
-	#	while(my($key, $value) = each(%regEx)){
-	#		print $value;
-	#	}
+		while(my($key, $value) = each(%regEx)){
+			print $value;
+		}
 		print "\n";
 	#	@column = split(/ /, @column
 	#	print "@columns\n";
