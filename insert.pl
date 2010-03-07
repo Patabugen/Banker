@@ -13,7 +13,7 @@ my $csv = Text::CSV->new();
 # my $db = DBI->connect("dbi:mysql:dbname=banker.db", "", "");
 
 my %regEx = { };
-%regex->{ food } => "Sainsbury";
+$regEx { food } => "Sainsbury";
 
 #print %regEx;
 
