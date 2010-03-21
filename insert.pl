@@ -5,12 +5,13 @@ use warnings;
 use diagnostics;
 
 use Text::CSV;
-use DBI;
+use db::Main;
 
 my $file = 'statements/2010-feb.csv';
 my $fileStart = 0;
 my $csv = Text::CSV->new();
-# my $db = DBI->connect("dbi:mysql:dbname=banker.db", "", "");
+
+my $schema = db::Main->connect('dbi:SQLite:banker.db');
 
 	my %regEx = (
 		"Sainsbusy", "food",
@@ -51,9 +52,3 @@ while (<CSV>) {
 	}
 }
 close CSV;
-
-
-## Output the results
-while(my($label, $value) = each(%totals)){
-	print $label ."\t\t: £". $label{'value'}."\n";
-}
