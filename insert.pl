@@ -1,12 +1,18 @@
 #!/usr/bin/perl
 
+## Common Elements
 use strict;
 use warnings;
 use diagnostics;
 
-use Text::CSV;
 use dbase::Main;
-use Digest::MD5;
+my $schema = dbase::Main->connect('dbi:SQLite:banker.db');
+## End Common Elements
+
+
+## Libraries specific to this file
+use Digest::MD5 qw(md5_hex);
+use Text::CSV;
 
 ## Settings
 my $file = 'statements/2010-feb.csv';
@@ -14,8 +20,6 @@ my $fileStart = 0;
 
 ## Library Objects I'll be using
 my $csv = Text::CSV->new();
-my $schema = dbase::Main->connect('dbi:SQLite:banker.db');
-
 
 ## This will come from the dbase eventually
 	my %regEx = (
@@ -45,15 +49,17 @@ while (<CSV>) {
 	if ($csv->parse($_)) {
 		my @columns = $csv->fields();
 		print $columns[$cDate]." - ";
-		print "£".$columns[$cAmount]." - ";
+		my $trans_md5 = md5_hex($columns[$cMatch] . $columns[$cAmount] . $columns[$cDate]);
+		my $trans_label;
+		print $trans_md5." - £".$columns[$cAmount]." - ";
 		while(my($exp, $label) = each(%regEx)){
 			if($columns[$cMatch] =~ m/$exp/){
-				push @trans, [$columns[$cMatch], $columns[$cAmount], $label, 1];
-				print $label;
-				$totals{$label}{'count'}++;
-				$totals{$label}{'value'} += $columns[ $cAmount ];
+				$trans_label = $label;
+				last;
 			}
 		}
+		push @trans, [$columns[$cMatch], $columns[$cAmount], $trans_label, 1, $trans_md5];
+
 		print "\t\t\t".$columns[ $cMatch ]." - ";
 		print "\n";
 	} else {
@@ -65,6 +71,6 @@ close CSV;
 
 ## Put them al into the DBase
 $schema->populate('Tran', [
-		[qw/tran_text tran_amount tran_group tran_owner/],
+		[qw/tran_text tran_amount tran_group tran_owner tran_key /],
 		@trans,
 	]);
