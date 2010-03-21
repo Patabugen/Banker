@@ -5,7 +5,7 @@ use warnings;
 use diagnostics;
 
 use Text::CSV;
-use db::Main;
+use dbase::Main;
 
 my $file = 'statements/2010-feb.csv';
 my $fileStart = 0;
