@@ -21,26 +21,11 @@ my $fileStart = 0;
 ## Library Objects I'll be using
 my $csv = Text::CSV->new();
 
-## This will come from the dbase eventually
-	my %regEx = (
-		"Sainsbusy", "food",
-		"WH Smith", "books",
-		"BuyMyShizzle", "bday presents",
-		"Overground", "travel",
-		"BOOKFAIR", "books",
-	);
-
 ## These too, come from DB or form input
 ## They tell us where abouts in the CSV file to look for data
 my $cDate = 0;
 my $cMatch = 1;
 my $cAmount = 2;
-
-## Setup the defaults
-my %totals = (
-		"Total Out", ("count", 0, "value" , 0),
-		"Total In", ("count", 0, "value" , 0),
-	);
 
 open (CSV, "<", $file) or die $!;
 
@@ -48,20 +33,8 @@ my @trans;
 while (<CSV>) {
 	if ($csv->parse($_)) {
 		my @columns = $csv->fields();
-		print $columns[$cDate]." - ";
 		my $trans_md5 = md5_hex($columns[$cMatch] . $columns[$cAmount] . $columns[$cDate]);
-		my $trans_label;
-		print $trans_md5." - £".$columns[$cAmount]." - ";
-		while(my($exp, $label) = each(%regEx)){
-			if($columns[$cMatch] =~ m/$exp/){
-				$trans_label = $label;
-				last;
-			}
-		}
 		push @trans, [$columns[$cMatch], $columns[$cAmount], $trans_label, 1, $trans_md5];
-
-		print "\t\t\t".$columns[ $cMatch ]." - ";
-		print "\n";
 	} else {
 		my $err = $csv->error_input;
 		print "Failed to parse line: $err";
