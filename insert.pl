@@ -13,6 +13,7 @@ my $schema = dbase::Main->connect('dbi:SQLite:banker.db');
 ## Libraries specific to this file
 use Digest::MD5 qw(md5_hex);
 use Text::CSV;
+use HTTP::Date;
 
 ## Settings
 my $file = 'statements/2010-feb.csv';
@@ -33,8 +34,17 @@ my @trans;
 while (<CSV>) {
 	if ($csv->parse($_)) {
 		my @columns = $csv->fields();
-		my $trans_md5 = md5_hex($columns[$cMatch] . $columns[$cAmount] . $columns[$cDate]);
-		push @trans, [$columns[$cMatch], $columns[$cAmount], $trans_label, 1, $trans_md5];
+		my $tran_md5 = md5_hex($columns[$cMatch] . $columns[$cAmount] . $columns[$cDate]);
+
+		## Try and get a proper date
+		my $tran_date = $columns[$cDate];
+		$tran_date =~ s/ /\-/g;
+		$tran_date = str2time($tran_date);
+		
+		## If this field is blank, it's probably a credit
+		if($columns[$cAmount] ne "" ){
+			push @trans, [$columns[$cMatch], $columns[$cAmount], 1, $tran_md5, $tran_date];
+		}
 	} else {
 		my $err = $csv->error_input;
 		print "Failed to parse line: $err";
@@ -44,6 +54,6 @@ close CSV;
 
 ## Put them al into the DBase
 $schema->populate('Tran', [
-		[qw/tran_text tran_amount tran_group tran_owner tran_key /],
+		[qw/tran_text tran_amount tran_owner tran_key tran_date /],
 		@trans,
 	]);
