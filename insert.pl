@@ -16,7 +16,7 @@ use Text::CSV;
 use HTTP::Date;
 
 ## Settings
-my $file = 'statements/2010-feb.csv';
+my $file = $ARGV[0];
 my $fileStart = 0;
 
 ## Library Objects I'll be using

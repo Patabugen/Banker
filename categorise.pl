@@ -15,18 +15,25 @@ my $trans = $schema->resultset('Tran')->search({
 	tran_group	=> undef
 });
 
+my @matches;
+my $matchResults = $schema->resultset('Match')->search({
+	match_owner	=> $userid
+});
+while(my $row = $matchResults->next){
+	push @matches, [$row->get_column('match_pattern'),  $row->get_column('match_label')];
+}
+
+
 sub categorise{
 	my $text = shift;
 	my $trans_label;
-	my $matches = $schema->resultset('Match')->search({
-		match_owner	=> $userid
-	});
-	while(my $row = $matches->next){
-		my $exp = $row->get_column('match_pattern');
-		if($text =~ m/$exp/){
-			return $row->get_column('match_label');
-		}
-	}
+	use vars qw(@matches);
+#	foreach $index (@matches){
+#		$pattern = @matches{$index};
+#		if($text =~ m/$pattern/){
+#			return @matches{index};
+#		}
+#	}
 	return "";
 }
 
@@ -48,7 +55,8 @@ while (my $row = $trans->next) {
 				print "\tLabel:\t\t\t";
 				chomp($label = <>);
 			}
-			
+			$schema->populate('Match', [ [qw/match_pattern match_label/], [$new, $label]]);
+			$schema->commit();
 		}
 	}
 	if($label ne "")
