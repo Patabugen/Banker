@@ -66,7 +66,6 @@ while (my $row = $trans->next) {
 				}
 			);
 			print "Created: ".$new_match->id();
-			$new_match->commit();
 #			$schema->populate('Match', [ [qw/match_pattern match_label/], [$new, $label]]);
 			push @matches, ("pattern" => $new, "label" => $label);
 
