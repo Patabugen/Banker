@@ -16,30 +16,34 @@ my $trans = $schema->resultset('Tran')->search({
 });
 
 my @matches;
-my $matchResults = $schema->resultset('Match')->search({
+my $match_rs = $schema->resultset('Match');
+my $matchResults = $match_rs->search({
 	match_owner	=> $userid
 });
+
 while(my $row = $matchResults->next){
-	push @matches, [$row->get_column('match_pattern'),  $row->get_column('match_label')];
+#	push @matches, [$row->get_column('match_pattern'),  $row->get_column('match_label')];
+	push @matches, [ $row->get_column('match_pattern'),  $row->get_column('match_label')];
 }
 
 
 sub categorise{
+	my @matches = shift;
 	my $text = shift;
 	my $trans_label;
-	use vars qw(@matches);
-#	foreach $index (@matches){
-#		$pattern = @matches{$index};
-#		if($text =~ m/$pattern/){
-#			return @matches{index};
-#		}
-#	}
+	for my $pat (@matches){
+		my $pattern = @$pat[0];
+		my $label = @$pat[1];
+		if($text =~ m/$pattern/i){
+			return $label;
+		}
+	}
 	return "";
 }
 
 while (my $row = $trans->next) {
 	my $text = $row->get_column('tran_text');
-	my $label = categorise($text);
+	my $label = categorise(@matches, $text);
 	if($label eq "")
 	{
 		print "Not Matched: \'".$text."'\n";
@@ -55,8 +59,17 @@ while (my $row = $trans->next) {
 				print "\tLabel:\t\t\t";
 				chomp($label = <>);
 			}
-			$schema->populate('Match', [ [qw/match_pattern match_label/], [$new, $label]]);
-			$schema->commit();
+			my $new_match = $match_rs->create(
+				{
+					match_pattern	=> $new,
+					match_label	=> $label
+				}
+			);
+			print "Created: ".$new_match->id();
+			$new_match->commit();
+#			$schema->populate('Match', [ [qw/match_pattern match_label/], [$new, $label]]);
+			push @matches, ("pattern" => $new, "label" => $label);
+
 		}
 	}
 	if($label ne "")
