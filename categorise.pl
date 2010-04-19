@@ -10,10 +10,15 @@ my $schema = dbase::Main->connect('dbi:SQLite:banker.db');
 my $userid = 1;
 ## End Common Elements
 
-my $trans = $schema->resultset('Tran')->search({
-	tran_owner	=> $userid,
-	tran_group	=> undef
-});
+my $trans = $schema->resultset('Tran')->search(
+	{
+		tran_owner	=> $userid,
+		tran_group	=> undef
+	},
+	{
+		rows		=> 5
+	}
+);
 
 my @matches;
 my $match_rs = $schema->resultset('Match');
@@ -22,8 +27,7 @@ my $matchResults = $match_rs->search({
 });
 
 while(my $row = $matchResults->next){
-#	push @matches, [$row->get_column('match_pattern'),  $row->get_column('match_label')];
-	push @matches, [ $row->get_column('match_pattern'),  $row->get_column('match_label')];
+	push @matches, [ $row->match_pattern,  $row->match_label ];
 }
 
 
@@ -34,7 +38,7 @@ sub categorise{
 	for my $pat (@matches){
 		my $pattern = @$pat[0];
 		my $label = @$pat[1];
-		if($text =~ m/$pattern/i){
+		if($text =~ m/Q$pattern/i){
 			return $label;
 		}
 	}
@@ -59,15 +63,16 @@ while (my $row = $trans->next) {
 				print "\tLabel:\t\t\t";
 				chomp($label = <>);
 			}
-			my $new_match = $match_rs->create(
+			my $new_match = $match_rs->new(
 				{
 					match_pattern	=> $new,
 					match_label	=> $label
 				}
 			);
-			print "Created: ".$new_match->id();
+			$new_match = $new_match->insert();
+			print "Created: [ $new , $label ] with ID ".$new_match->id()."\n";
 #			$schema->populate('Match', [ [qw/match_pattern match_label/], [$new, $label]]);
-			push @matches, ("pattern" => $new, "label" => $label);
+			push @matches, [ $new, $label ];
 
 		}
 	}
